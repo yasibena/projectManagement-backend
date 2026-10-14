@@ -1,9 +1,12 @@
-```yaml
 name: Backend CI
 
-on:
+'on':
   push:
+    branches:
+      - main
   pull_request:
+    branches:
+      - main
 
 jobs:
   validate:
@@ -31,4 +34,3 @@ jobs:
 
       - name: Build application
         run: npm run build
-```
