@@ -5,7 +5,6 @@ import {
   Post,
   Param,
   Delete,
-  Patch,
 } from '@nestjs/common';
 
 import { CreateTaskDto } from './create-task.dto.js';
