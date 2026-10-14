@@ -1,4 +1,3 @@
-```dockerfile
 # Stage 1: Build the application
 FROM node:22-alpine AS builder
 
@@ -27,4 +26,3 @@ COPY --from=builder /app/dist ./dist
 EXPOSE 3000
 
 CMD ["node", "dist/main.js"]
-```
