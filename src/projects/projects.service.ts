@@ -28,6 +28,29 @@ export class ProjectsService {
     return this.projectModel.find().exec();
   }
 
+  async getProjectSummaries() {
+    const projects = await this.getProjects();
+
+    return Promise.all(projects.map((project) => this.toProjectSummary(project)));
+  }
+
+  private async toProjectSummary(project: ProjectDocument) {
+    const { progress, ...taskStats } = await this.tasksService.getTaskStatsByProject(
+      project.id,
+    );
+
+    return {
+      id: project.id,
+      title: project.title,
+      description: project.description ?? null,
+      deadline: project.deadline ?? null,
+      lifecycleStatus: project.status ?? 'active',
+      risk: project.risk ?? 'on_track',
+      progress,
+      taskStats,
+    };
+  }
+
   async createProject(createProjectDto: CreateProjectDto) {
     const project = new this.projectModel(createProjectDto);
 
@@ -57,11 +80,6 @@ export class ProjectsService {
       throw new NotFoundException('Project not found');
     }
 
-    const taskStats = await this.tasksService.getTaskStatsByProject(project.id);
-
-    return {
-      ...project.toObject(),
-      taskStats,
-    };
+    return this.toProjectSummary(project);
   }
 }

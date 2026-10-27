@@ -19,7 +19,7 @@ export class ProjectsController {
 
   @Get()
   getProjects() {
-    return this.projectsService.getProjects();
+    return this.projectsService.getProjectSummaries();
   }
 
   @Get(':id')

@@ -16,6 +16,9 @@ export class Project {
 
   @Prop({ default: 'active' })
   status: string;
+
+  @Prop({ default: 'on_track' })
+  risk: string;
 }
 
 export const ProjectSchema = SchemaFactory.createForClass(Project);
