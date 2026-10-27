@@ -6,6 +6,10 @@
 # TypeScript build cache
 *.tsbuildinfo
 
+# Next.js generated files
+/frontend/next-env.d.ts
+/frontend/.next/
+
 # Logs
 logs
 *.log
