@@ -3,7 +3,6 @@ import { ProjectsController } from './projects.controller.js';
 import { ProjectsService } from './projects.service.js';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Project, ProjectSchema } from './project.schema.js';
-import { Task, TaskSchema } from '../tasks/task.schema.js';
 import { TasksModule } from '../tasks/tasks.module.js';
 
 @Module({
@@ -12,10 +11,6 @@ import { TasksModule } from '../tasks/tasks.module.js';
       {
         name: Project.name,
         schema: ProjectSchema,
-      },
-      {
-        name: Task.name,
-        schema: TaskSchema,
       },
     ]),
     TasksModule,

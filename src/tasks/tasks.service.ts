@@ -1,6 +1,6 @@
 import {
-  Injectable,
   BadRequestException,
+  Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -9,19 +9,37 @@ import { Model, Types } from 'mongoose';
 import { CreateTaskDto } from './create-task.dto.js';
 import { Task, TaskDocument } from './task.schema.js';
 import { UpdateTaskDto } from './update.task.dto.js';
+import { Project, ProjectDocument } from '../projects/project.schema.js';
 
 @Injectable()
 export class TasksService {
-  async getTaskStatsByProject(projectId: string) {
+  constructor(
+    @InjectModel(Task.name)
+    private readonly taskModel: Model<TaskDocument>,
+    @InjectModel(Project.name)
+    private readonly projectModel: Model<ProjectDocument>,
+  ) {}
+
+  async getTaskStatsByProject(projectId: string, ownerId: string) {
     if (!Types.ObjectId.isValid(projectId)) {
       throw new BadRequestException('Invalid project ID');
     }
 
-    const total = await this.taskModel.countDocuments({ projectId }).exec();
+    const project = await this.projectModel
+      .findOne({ _id: projectId, ownerId })
+      .select('_id')
+      .exec();
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    const total = await this.taskModel.countDocuments({ projectId, ownerId }).exec();
 
     const completed = await this.taskModel
       .countDocuments({
         projectId,
+        ownerId,
         status: 'completed',
       })
       .exec();
@@ -34,32 +52,56 @@ export class TasksService {
     };
   }
 
-  constructor(
-    @InjectModel(Task.name)
-    private readonly taskModel: Model<TaskDocument>,
-  ) {}
+  async createTask(createTaskDto: CreateTaskDto, ownerId: string) {
+    if (!Types.ObjectId.isValid(createTaskDto.projectId)) {
+      throw new BadRequestException('Invalid project ID');
+    }
 
-  async createTask(createTaskDto: CreateTaskDto) {
-    const task = new this.taskModel(createTaskDto);
+    const project = await this.projectModel
+      .findOne({ _id: createTaskDto.projectId, ownerId })
+      .select('_id')
+      .exec();
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    const task = new this.taskModel({
+      ...createTaskDto,
+      ownerId,
+    });
 
     return task.save();
   }
 
-  async getTasks() {
-    return this.taskModel.find().exec();
+  getTasks(ownerId: string) {
+    return this.taskModel.find({ ownerId }).exec();
   }
 
-  async getTasksByProject(projectId: string) {
-    return this.taskModel.find({ projectId }).exec();
+  async getTasksByProject(projectId: string, ownerId: string) {
+    if (!Types.ObjectId.isValid(projectId)) {
+      throw new BadRequestException('Invalid project ID');
+    }
+
+    const project = await this.projectModel
+      .findOne({ _id: projectId, ownerId })
+      .select('_id')
+      .exec();
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    return this.taskModel.find({ projectId, ownerId }).exec();
   }
 
-  async updateTask(id: string, updateTaskDto: UpdateTaskDto) {
+  async updateTask(id: string, updateTaskDto: UpdateTaskDto, ownerId: string) {
     if (!Types.ObjectId.isValid(id)) {
-      throw new Error('Invalid task ID');
+      throw new BadRequestException('Invalid task ID');
     }
 
     const task = await this.taskModel
-      .findByIdAndUpdate(id, updateTaskDto, {
+      .findOneAndUpdate({ _id: id, ownerId }, updateTaskDto, {
         new: true,
         runValidators: true,
       })
@@ -72,37 +114,23 @@ export class TasksService {
     return task;
   }
 
-  async deleteTask(id: string) {
+  async deleteTask(id: string, ownerId: string) {
     if (!Types.ObjectId.isValid(id)) {
-      //400
       throw new BadRequestException('Invalid task ID');
     }
 
-    const task = await this.taskModel.findByIdAndDelete(id).exec();
+    const task = await this.taskModel
+      .findOneAndDelete({ _id: id, ownerId })
+      .exec();
 
     if (!task) {
-      //404
       throw new NotFoundException('Task not found');
     }
 
     return { message: 'Task deleted successfully' };
   }
 
-  async getTaskStatusCountsByProject(projectId: string) {
-    if (!Types.ObjectId.isValid(projectId)) {
-      throw new BadRequestException('Invalid project ID');
-    }
-
-    const total = await this.taskModel.countDocuments({ projectId }).exec();
-
-    const completed = await this.taskModel
-      .countDocuments({
-        projectId,
-        status: 'completed',
-      })
-      .exec();
-
-    const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
-    return { total, completed, remaining: total - completed, progress };
+  getTaskStatusCountsByProject(projectId: string, ownerId: string) {
+    return this.getTaskStatsByProject(projectId, ownerId);
   }
 }

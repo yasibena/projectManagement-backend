@@ -10,14 +10,15 @@ export class DashboardService {
     private readonly tasksService: TasksService,
   ) {}
 
-  async getDashboard() {
-    const projects = await this.projectsService.getProjects();
-    const tasks = await this.tasksService.getTasks();
+  async getDashboard(ownerId: string) {
+    const projects = await this.projectsService.getProjects(ownerId);
+    const tasks = await this.tasksService.getTasks(ownerId);
 
     const projectStats = await Promise.all(
       projects.map(async (project) => {
         const taskStats = await this.tasksService.getTaskStatsByProject(
           project._id.toString(),
+          ownerId,
         );
 
         return {
