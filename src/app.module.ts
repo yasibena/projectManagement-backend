@@ -8,6 +8,7 @@ import { ProjectsModule } from './projects/projects.module.js';
 import { TasksModule } from './tasks/tasks.module.js';
 import { DashboardModule } from './dashboard/dashboard.module.js';
 import { AuthModule } from './auth/auth.module.js';
+import { AiAnalysisModule } from './ai-analysis/ai-analysis.module.js';
 
 @Module({
   imports: [
@@ -24,6 +25,8 @@ import { AuthModule } from './auth/auth.module.js';
     DashboardModule,
 
     AuthModule,
+
+    AiAnalysisModule,
   ],
   controllers: [AppController],
   providers: [AppService],
