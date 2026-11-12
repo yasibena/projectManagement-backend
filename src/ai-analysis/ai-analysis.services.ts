@@ -28,11 +28,6 @@ ${JSON.stringify(tasks, null, 2)}
 
     const aiMessage = await this.groqService.generate(prompt);
 
-    const insights: { type: string; message: string }[] = [];
-    if (projects.length === 0) {
-      insights.push({ type: 'info', message: 'No projects yet.' });
-    }
-
     const overdue = tasks.filter(
       (t: TaskDocument) =>
         t.status !== 'completed' &&
@@ -59,6 +54,7 @@ ${JSON.stringify(tasks, null, 2)}
           : 'On Track';
 
     return {
+      analysisProvider: 'groq',
       projectsCount: projects.length,
       tasksCount: tasks.length,
       overdueCount: overdue.length,
@@ -67,12 +63,6 @@ ${JSON.stringify(tasks, null, 2)}
         risk: healthRisk,
         title: `Project Health: ${healthLabel}`,
         message: aiMessage,
-        // message:
-        //   healthRisk === 'at_risk'
-        //     ? 'Project progress is behind schedule and needs immediate attention.'
-        //     : healthRisk === 'medium_risk'
-        //       ? 'Your project is making steady progress, but one critical dependency is putting the delivery timeline at risk.'
-        //       : 'Your project is progressing well and remains on track.',
         projectId: projects[0]?.id ?? null,
       },
       insights: [

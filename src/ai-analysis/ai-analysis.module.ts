@@ -9,6 +9,6 @@ import { GroqService } from './groq.service.js';
 @Module({
   imports: [ProjectsModule, TasksModule],
   controllers: [AiAnalysisController],
-  providers: [AiAnalysisService,GroqService],
+  providers: [AiAnalysisService, GroqService],
 })
 export class AiAnalysisModule {}
