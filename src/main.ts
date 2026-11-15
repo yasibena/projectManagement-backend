@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const frontendOrigin = process.env.FRONTEND_ORIGIN ?? 'http://localhost:3001';
+  const port = Number(process.env.PORT ?? 3000);
 
   app.use(cookieParser());
 
@@ -20,7 +21,7 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(3000);
+  await app.listen(port);
 }
 
 bootstrap();

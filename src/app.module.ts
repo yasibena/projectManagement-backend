@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { AppController } from './app.controller.js';
@@ -10,13 +10,41 @@ import { DashboardModule } from './dashboard/dashboard.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { AiAnalysisModule } from './ai-analysis/ai-analysis.module.js';
 
+function validateEnvironment(config: Record<string, unknown>) {
+  const required = [
+    'MONGODB_URI',
+    'JWT_SECRET',
+    'GROQ_API_KEY',
+    'FRONTEND_ORIGIN',
+  ];
+
+  const missing = required.filter((name) => {
+    const value = config[name];
+    return typeof value !== 'string' || value.trim().length === 0;
+  });
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing required environment variables: ${missing.join(', ')}`,
+    );
+  }
+
+  return config;
+}
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      validate: validateEnvironment,
     }),
 
-    MongooseModule.forRoot(process.env.MONGODB_URI!),
+    MongooseModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.getOrThrow<string>('MONGODB_URI'),
+      }),
+    }),
 
     ProjectsModule,
 
