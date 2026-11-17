@@ -6,7 +6,7 @@ import { PassportModule } from '@nestjs/passport';
 import type { SignOptions } from 'jsonwebtoken';
 
 import { AuthController } from './auth.controller.js';
-import { AdminController } from './admin.controller.js';
+import { AdminController, AuthAdminController } from './admin.controller.js';
 import { AuthService } from './auth.service.js';
 import { JwtStrategy } from './jwt.strategy.js';
 import { RolesGuard } from './roles.guard.js';
@@ -36,7 +36,7 @@ import { User, UserSchema } from './user.schema.js';
       }),
     }),
   ],
-  controllers: [AuthController, AdminController],
+  controllers: [AuthController, AdminController, AuthAdminController],
   providers: [AuthService, JwtStrategy, RolesGuard],
   exports: [AuthService],
 })

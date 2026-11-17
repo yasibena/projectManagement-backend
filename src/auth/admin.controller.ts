@@ -32,3 +32,23 @@ export class AdminController {
     return this.authService.updateUserRole(id, updateUserRoleDto.role);
   }
 }
+
+@Controller('auth/admin')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('admin')
+export class AuthAdminController {
+  constructor(private readonly authService: AuthService) {}
+
+  @Get('users')
+  listUsers() {
+    return this.authService.listUsers();
+  }
+
+  @Patch('users/:id/role')
+  updateUserRole(
+    @Param('id') id: string,
+    @Body() updateUserRoleDto: UpdateUserRoleDto,
+  ) {
+    return this.authService.updateUserRole(id, updateUserRoleDto.role);
+  }
+}

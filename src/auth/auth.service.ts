@@ -14,6 +14,14 @@ import { User, UserDocument } from './user.schema.js';
 import type { UserRole } from './user.schema.js';
 import { LoginDto } from './login.dto.js';
 
+type AdminUserRecord = {
+  _id: { toString(): string };
+  email: string;
+  role: UserRole;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -46,21 +54,38 @@ export class AuthService {
   }
 
   async listUsers() {
-    return this.userModel
+    const users = (await this.userModel
       .find()
       .select('_id email role createdAt updatedAt')
       .sort({ createdAt: -1 })
-      .exec();
+      .lean()
+      .exec()) as AdminUserRecord[];
+
+    return users.map((user) => ({
+      id: user._id.toString(),
+      email: user.email,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    }));
   }
 
   async updateUserRole(id: string, role: UserRole) {
-    const user = await this.userModel
+    const user = (await this.userModel
       .findByIdAndUpdate(id, { role }, { new: true, runValidators: true })
       .select('_id email role createdAt updatedAt')
-      .exec();
+      .lean()
+      .exec()) as AdminUserRecord | null;
 
     if (!user) throw new UnauthorizedException('User not found');
-    return user;
+
+    return {
+      id: user._id.toString(),
+      email: user.email,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 
   async login(dto: LoginDto) {
