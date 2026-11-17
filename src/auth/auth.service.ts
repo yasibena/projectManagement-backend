@@ -11,6 +11,7 @@ import * as argon2 from 'argon2';
 
 import { RegisterDto } from './register.dto.js';
 import { User, UserDocument } from './user.schema.js';
+import type { UserRole } from './user.schema.js';
 import { LoginDto } from './login.dto.js';
 
 @Injectable()
@@ -42,6 +43,24 @@ export class AuthService {
       email: user.email,
       role: user.role,
     };
+  }
+
+  async listUsers() {
+    return this.userModel
+      .find()
+      .select('_id email role createdAt updatedAt')
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
+  async updateUserRole(id: string, role: UserRole) {
+    const user = await this.userModel
+      .findByIdAndUpdate(id, { role }, { new: true, runValidators: true })
+      .select('_id email role createdAt updatedAt')
+      .exec();
+
+    if (!user) throw new UnauthorizedException('User not found');
+    return user;
   }
 
   async login(dto: LoginDto) {

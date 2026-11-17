@@ -23,7 +23,10 @@ export class ProjectsController {
 
   @Get()
   getProjects(@Request() request: { user: JwtPayload }) {
-    return this.projectsService.getProjectSummaries(request.user.sub);
+    return this.projectsService.getProjectSummaries(
+      request.user.sub,
+      request.user.role === 'admin',
+    );
   }
 
   @Get(':id')
@@ -31,7 +34,11 @@ export class ProjectsController {
     @Param('id') id: string,
     @Request() request: { user: JwtPayload },
   ) {
-    return this.projectsService.getProjectById(id, request.user.sub);
+    return this.projectsService.getProjectById(
+      id,
+      request.user.sub,
+      request.user.role === 'admin',
+    );
   }
 
   @Post()
@@ -52,6 +59,7 @@ export class ProjectsController {
       id,
       updateProjectDto,
       request.user.sub,
+      request.user.role === 'admin',
     );
   }
 
@@ -60,6 +68,10 @@ export class ProjectsController {
     @Param('id') id: string,
     @Request() request: { user: JwtPayload },
   ) {
-    return this.projectsService.deleteProject(id, request.user.sub);
+    return this.projectsService.deleteProject(
+      id,
+      request.user.sub,
+      request.user.role === 'admin',
+    );
   }
 }

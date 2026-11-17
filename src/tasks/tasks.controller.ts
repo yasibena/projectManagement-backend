@@ -23,7 +23,10 @@ export class TasksController {
 
   @Get()
   getTasks(@Request() request: { user: JwtPayload }) {
-    return this.tasksService.getTasks(request.user.sub);
+    return this.tasksService.getTasks(
+      request.user.sub,
+      request.user.role === 'admin',
+    );
   }
 
   @Get('project/:projectId')
@@ -31,7 +34,11 @@ export class TasksController {
     @Param('projectId') projectId: string,
     @Request() request: { user: JwtPayload },
   ) {
-    return this.tasksService.getTasksByProject(projectId, request.user.sub);
+    return this.tasksService.getTasksByProject(
+      projectId,
+      request.user.sub,
+      request.user.role === 'admin',
+    );
   }
 
   @Post()
@@ -48,7 +55,12 @@ export class TasksController {
     @Body() updateTaskDto: UpdateTaskDto,
     @Request() request: { user: JwtPayload },
   ) {
-    return this.tasksService.updateTask(id, updateTaskDto, request.user.sub);
+    return this.tasksService.updateTask(
+      id,
+      updateTaskDto,
+      request.user.sub,
+      request.user.role === 'admin',
+    );
   }
 
   @Delete(':id')
@@ -56,7 +68,11 @@ export class TasksController {
     @Param('id') id: string,
     @Request() request: { user: JwtPayload },
   ) {
-    return this.tasksService.deleteTask(id, request.user.sub);
+    return this.tasksService.deleteTask(
+      id,
+      request.user.sub,
+      request.user.role === 'admin',
+    );
   }
 
   @Get('project/:projectId/stats')
@@ -64,6 +80,10 @@ export class TasksController {
     @Param('projectId') projectId: string,
     @Request() request: { user: JwtPayload },
   ) {
-    return this.tasksService.getTaskStatsByProject(projectId, request.user.sub);
+    return this.tasksService.getTaskStatsByProject(
+      projectId,
+      request.user.sub,
+      request.user.role === 'admin',
+    );
   }
 }

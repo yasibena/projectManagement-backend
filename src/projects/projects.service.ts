@@ -20,21 +20,25 @@ export class ProjectsService {
     private readonly tasksService: TasksService,
   ) {}
 
-  getProjects(ownerId: string) {
-    return this.projectModel.find({ ownerId }).exec();
+  getProjects(ownerId: string, isAdmin = false) {
+    return this.projectModel.find(isAdmin ? {} : { ownerId }).exec();
   }
 
-  async getProjectSummaries(ownerId: string) {
-    const projects = await this.getProjects(ownerId);
+  async getProjectSummaries(ownerId: string, isAdmin = false) {
+    const projects = await this.getProjects(ownerId, isAdmin);
 
     return Promise.all(
-      projects.map((project) => this.toProjectSummary(project, ownerId)),
+      projects.map((project) => this.toProjectSummary(project, ownerId, isAdmin)),
     );
   }
 
-  private async toProjectSummary(project: ProjectDocument, ownerId: string) {
+  private async toProjectSummary(
+    project: ProjectDocument,
+    ownerId: string,
+    isAdmin = false,
+  ) {
     const { progress, ...taskStats } =
-      await this.tasksService.getTaskStatsByProject(project.id, ownerId);
+      await this.tasksService.getTaskStatsByProject(project.id, ownerId, isAdmin);
 
     return {
       id: project.id,
@@ -61,13 +65,17 @@ export class ProjectsService {
     id: string,
     updateProjectDto: UpdateProjectDto,
     ownerId: string,
+    isAdmin = false,
   ) {
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException('Invalid project ID');
     }
 
     const project = await this.projectModel
-      .findOneAndUpdate({ _id: id, ownerId }, updateProjectDto, {
+      .findOneAndUpdate(
+        isAdmin ? { _id: id } : { _id: id, ownerId },
+        updateProjectDto,
+        {
         new: true,
         runValidators: true,
       })
@@ -80,13 +88,13 @@ export class ProjectsService {
     return project;
   }
 
-  async deleteProject(id: string, ownerId: string) {
+  async deleteProject(id: string, ownerId: string, isAdmin = false) {
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException('Invalid project ID');
     }
 
     const project = await this.projectModel
-      .findOneAndDelete({ _id: id, ownerId })
+      .findOneAndDelete(isAdmin ? { _id: id } : { _id: id, ownerId })
       .exec();
 
     if (!project) {
@@ -96,19 +104,19 @@ export class ProjectsService {
     return project;
   }
 
-  async getProjectById(id: string, ownerId: string) {
+  async getProjectById(id: string, ownerId: string, isAdmin = false) {
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException('Invalid project ID');
     }
 
     const project = await this.projectModel
-      .findOne({ _id: id, ownerId })
+      .findOne(isAdmin ? { _id: id } : { _id: id, ownerId })
       .exec();
 
     if (!project) {
       throw new NotFoundException('Project not found');
     }
 
-    return this.toProjectSummary(project, ownerId);
+    return this.toProjectSummary(project, ownerId, isAdmin);
   }
 }

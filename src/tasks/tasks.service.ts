@@ -20,13 +20,17 @@ export class TasksService {
     private readonly projectModel: Model<ProjectDocument>,
   ) {}
 
-  async getTaskStatsByProject(projectId: string, ownerId: string) {
+  async getTaskStatsByProject(
+    projectId: string,
+    ownerId: string,
+    isAdmin = false,
+  ) {
     if (!Types.ObjectId.isValid(projectId)) {
       throw new BadRequestException('Invalid project ID');
     }
 
     const project = await this.projectModel
-      .findOne({ _id: projectId, ownerId })
+      .findOne(isAdmin ? { _id: projectId } : { _id: projectId, ownerId })
       .select('_id')
       .exec();
 
@@ -34,12 +38,12 @@ export class TasksService {
       throw new NotFoundException('Project not found');
     }
 
-    const total = await this.taskModel.countDocuments({ projectId, ownerId }).exec();
+    const taskScope = isAdmin ? { projectId } : { projectId, ownerId };
+    const total = await this.taskModel.countDocuments(taskScope).exec();
 
     const completed = await this.taskModel
       .countDocuments({
-        projectId,
-        ownerId,
+        ...taskScope,
         status: 'completed',
       })
       .exec();
@@ -74,17 +78,21 @@ export class TasksService {
     return task.save();
   }
 
-  getTasks(ownerId: string) {
-    return this.taskModel.find({ ownerId }).exec();
+  getTasks(ownerId: string, isAdmin = false) {
+    return this.taskModel.find(isAdmin ? {} : { ownerId }).exec();
   }
 
-  async getTasksByProject(projectId: string, ownerId: string) {
+  async getTasksByProject(
+    projectId: string,
+    ownerId: string,
+    isAdmin = false,
+  ) {
     if (!Types.ObjectId.isValid(projectId)) {
       throw new BadRequestException('Invalid project ID');
     }
 
     const project = await this.projectModel
-      .findOne({ _id: projectId, ownerId })
+      .findOne(isAdmin ? { _id: projectId } : { _id: projectId, ownerId })
       .select('_id')
       .exec();
 
@@ -92,16 +100,26 @@ export class TasksService {
       throw new NotFoundException('Project not found');
     }
 
-    return this.taskModel.find({ projectId, ownerId }).exec();
+    return this.taskModel
+      .find(isAdmin ? { projectId } : { projectId, ownerId })
+      .exec();
   }
 
-  async updateTask(id: string, updateTaskDto: UpdateTaskDto, ownerId: string) {
+  async updateTask(
+    id: string,
+    updateTaskDto: UpdateTaskDto,
+    ownerId: string,
+    isAdmin = false,
+  ) {
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException('Invalid task ID');
     }
 
     const task = await this.taskModel
-      .findOneAndUpdate({ _id: id, ownerId }, updateTaskDto, {
+      .findOneAndUpdate(
+        isAdmin ? { _id: id } : { _id: id, ownerId },
+        updateTaskDto,
+        {
         new: true,
         runValidators: true,
       })
@@ -114,13 +132,13 @@ export class TasksService {
     return task;
   }
 
-  async deleteTask(id: string, ownerId: string) {
+  async deleteTask(id: string, ownerId: string, isAdmin = false) {
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException('Invalid task ID');
     }
 
     const task = await this.taskModel
-      .findOneAndDelete({ _id: id, ownerId })
+      .findOneAndDelete(isAdmin ? { _id: id } : { _id: id, ownerId })
       .exec();
 
     if (!task) {
