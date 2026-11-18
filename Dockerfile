@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM node:22-alpine AS builder
+FROM public.ecr.aws/docker/library/node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ RUN npm run build
 RUN npm prune --omit=dev
 
 # Stage 2: Run the application
-FROM node:22-alpine AS production
+FROM public.ecr.aws/docker/library/node:22-alpine AS production
 
 WORKDIR /app
 
